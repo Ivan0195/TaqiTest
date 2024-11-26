@@ -140,7 +140,7 @@ You are smart assistant. Give valid answer to provided question
 #Questiom:
 ${data.question.replace("#dropcontext", "")}.
 ----------
-Use previous chat history:
+${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
@@ -148,10 +148,10 @@ ${data.chatHistory.map((el) => {
     ${el.author === "user" ? `<s>[INST]${el.messege}[/INST]` : `${el.messege}</s>`}
     `
             }).reduce((acc, el) => acc + el, "")}
-----------
+----------` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
-            return answer.data
+            return answer.data.content
         } else {
             const searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
             const extraInfo = searchResult.reduce((acc, el) => acc + el.pageContent + " ", "")
@@ -171,7 +171,7 @@ Use additional information, which can help you to generate correct answer
 #Additional information:
 ${extraInfo}
 ----------
-Use previous chat history:
+${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
@@ -179,10 +179,10 @@ ${data.chatHistory.map((el) => {
     ${el.author === "user" ? `<s>[INST]${el.messege}[/INST]` : `${el.messege}</s>`}
     `
             }).reduce((acc, el) => acc + el, "")}
-----------
+----------` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
-            return answer.data
+            return answer.data.content
         }
     }
 }

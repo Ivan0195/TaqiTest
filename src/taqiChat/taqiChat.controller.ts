@@ -2,12 +2,9 @@ import {
     Controller,
     HttpException,
     Post,
-    UseInterceptors,
-    UploadedFiles,
-    Query, Body,
+    Body,
 } from '@nestjs/common';
-import {IChatMessege, ITemplate, TaqiChatService} from './taqiChat.service';
-import {FilesInterceptor} from '@nestjs/platform-express';
+import {IChatMessage, ITemplate, TaqiChatService} from './taqiChat.service';
 
 @Controller('taqiChat')
 export class TaqiChatController {
@@ -21,7 +18,7 @@ export class TaqiChatController {
             template?: ITemplate,
             question: string,
             dropContext?: boolean,
-            chatHistory?: IChatMessege[],
+            chatHistory?: IChatMessage[],
         }
     ) {
         try {

@@ -29,9 +29,9 @@ interface INote {
     FileId?: Blob
 }
 
-export interface IChatMessege {
+export interface IChatMessage {
     author: "taqi" | "user",
-    messege: string
+    message: string
 }
 
 @Injectable()
@@ -106,7 +106,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             template?: ITemplate,
             question: string,
             dropContext?: boolean,
-            chatHistory?: IChatMessege[],
+            chatHistory?: IChatMessage[],
         }
     ) {
         if (data.dropContext || data.question.includes("#dropcontext") || data.template) {
@@ -145,7 +145,7 @@ ${data.chatHistory ? `Use previous chat history:
 #Chat history:
 ${data.chatHistory.map((el) => {
                 return `
-    ${el.author === "user" ? `<s>[INST]${el.messege}[/INST]` : `${el.messege}</s>`}
+    ${el.author === "user" ? `<s>[INST]${el.message}[/INST]` : `${el.message}</s>`}
     `
             }).reduce((acc, el) => acc + el, "")}
 ----------` : ''}
@@ -176,7 +176,7 @@ ${data.chatHistory ? `Use previous chat history:
 #Chat history:
 ${data.chatHistory.map((el) => {
                 return `
-    ${el.author === "user" ? `<s>[INST]${el.messege}[/INST]` : `${el.messege}</s>`}
+    ${el.author === "user" ? `<s>[INST]${el.message}[/INST]` : `${el.message}</s>`}
     `
             }).reduce((acc, el) => acc + el, "")}
 ----------` : ''}

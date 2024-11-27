@@ -144,13 +144,10 @@ ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
-                return `
-    ${el.author === "user" ? `<s>[INST]${el.message}[/INST]` : `${el.message}</s>`}
-    `
-            }).reduce((acc, el) => acc + el, "")}
-----------` : ''}
+                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
+            console.log(prompt)
             return answer.data.content
         } else {
             const searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
@@ -175,11 +172,7 @@ ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
-                return `
-    ${el.author === "user" ? `<s>[INST]${el.message}[/INST]` : `${el.message}</s>`}
-    `
-            }).reduce((acc, el) => acc + el, "")}
-----------` : ''}
+                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
             return answer.data.content

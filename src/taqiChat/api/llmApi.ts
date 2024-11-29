@@ -7,3 +7,10 @@ export const getLlmAnswer = async (prompt: string) => {
     })
     return answer
 }
+
+export const getTestLlmAnswer = async () => {
+    const answer = await axios.post("https://pleasant-bluejay-next.ngrok-free.app/makerDocker/completion", {
+        prompt: "[INST]2+2=[/INST]"
+    })
+    return answer
+}

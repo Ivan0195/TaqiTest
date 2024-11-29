@@ -4,7 +4,7 @@ import {FaissStore} from '@langchain/community/vectorstores/faiss';
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import {PDFLoader} from '@langchain/community/document_loaders/fs/pdf';
 import * as fs from "fs";
-import {getLlmAnswer} from "./api/llmApi";
+import {getLlmAnswer, getTestLlmAnswer} from "./api/llmApi";
 import {sharedData} from "./sharedData";
 
 export interface ITemplate {
@@ -192,5 +192,10 @@ ${data.chatHistory.map((el) => {
             const answer = await getLlmAnswer(prompt)
             return answer.data.content
         }
+    }
+
+    async testTaqi () {
+        const answer = await getTestLlmAnswer()
+        return answer.data.content
     }
 }

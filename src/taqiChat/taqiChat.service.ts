@@ -36,15 +36,23 @@ export interface IChatMessage {
 
 @Injectable()
 export class TaqiChatService implements OnApplicationBootstrap {
-    systemTags = ["#dropcontext"]
+    hashRegex = /(^|\s)(#[a-z+=\d-]+)/ig
 
     vectorStores: {vectorStore: FaissStore, userId: String}[] = [];
     embeddingModel = new HuggingFaceTransformersEmbeddings();
     filesTempDirectory = `./src/taqiChat/`;
     url = "https://pleasant-bluejay-next.ngrok-free.app/makerDocker/completion"
 
-    onApplicationBootstrap() {
-
+    async onApplicationBootstrap() {
+        const cachedStores = fs.readdirSync(`${this.filesTempDirectory}vectorStores`)
+        for (let folder of cachedStores) {
+            try {
+                const store = await FaissStore.load(folder, this.embeddingModel)
+                this.vectorStores.push({userId: folder, vectorStore: store})
+            } catch {
+                console.log("No cached data in provided folder")
+            }
+        }
     }
 
     async processText (userId: string, text: string) {
@@ -52,7 +60,8 @@ export class TaqiChatService implements OnApplicationBootstrap {
             chunkSize: 512,
             chunkOverlap: 0,
         });
-        const textVectorFormat = await FaissStore.fromTexts([text], [], this.embeddingModel)
+        const splittedText = await textSplitter.splitText(text);
+        const textVectorFormat = await FaissStore.fromTexts(splittedText, [], this.embeddingModel)
         const currentUserVectorStore = this.vectorStores.find(el => el.userId === userId)
         if (currentUserVectorStore) {
             await currentUserVectorStore.vectorStore.mergeFrom(textVectorFormat)
@@ -109,6 +118,12 @@ export class TaqiChatService implements OnApplicationBootstrap {
             chatHistory?: IChatMessage[],
         }
     ) {
+        var finalQuestion = data.question
+        const usedHashtags = data.question.match(this.hashRegex)
+        usedHashtags.forEach(el => {
+            finalQuestion = finalQuestion.replace(el, "")
+        })
+        const languageToUse = usedHashtags.find(el => el.includes("lang="))
         if (data.dropContext || data.question.includes("#dropcontext") || data.template) {
             const index = this.vectorStores.indexOf(this.vectorStores.find(el => el.userId === data.userId));
             if (index !== -1) {
@@ -130,24 +145,24 @@ export class TaqiChatService implements OnApplicationBootstrap {
         }
         const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
         if (!currentUserContext) {
-            const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, this is common information about your products:
+            const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, if user's question is connected with Manifest or other Taqtile products use this information:
 ----------
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Give valid answer to provided question
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
 ----------
 #Questiom:
-${data.question.replace("#dropcontext", "")}.
+${finalQuestion}
 ----------
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
                 return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
-            console.log(prompt)
             return answer.data.content
         } else {
             const searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
@@ -158,10 +173,10 @@ ${data.chatHistory.map((el) => {
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Give valid answer to provided question
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
 ----------
 #Question:
-${data.question.replace("#dropcontext", "")}.
+${finalQuestion}
 ----------
 Use additional information, which can help you to generate correct answer
 ----------

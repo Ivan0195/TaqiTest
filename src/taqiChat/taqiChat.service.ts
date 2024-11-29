@@ -201,6 +201,6 @@ ${data.chatHistory.map((el) => {
 
     async testTaqi () {
         const answer = await getTestLlmAnswer()
-        return answer.data.content
+        return answer.data.status
     }
 }

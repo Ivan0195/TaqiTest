@@ -118,12 +118,17 @@ export class TaqiChatService implements OnApplicationBootstrap {
             chatHistory?: IChatMessage[],
         }
     ) {
-        var finalQuestion = data.question
+        let languageToUse
+        let finalQuestion = data.question
         const usedHashtags = data.question.match(this.hashRegex)
-        usedHashtags.forEach(el => {
-            finalQuestion = finalQuestion.replace(el, "")
-        })
-        const languageToUse = usedHashtags.find(el => el.includes("lang="))
+        if (usedHashtags) {
+            usedHashtags.forEach(el => {
+                finalQuestion = finalQuestion.replace(el, "")
+            })
+        }
+        if (usedHashtags) {
+            languageToUse = usedHashtags.find(el => el.includes("lang="))
+        }
         if (data.dropContext || data.question.includes("#dropcontext") || data.template) {
             const index = this.vectorStores.indexOf(this.vectorStores.find(el => el.userId === data.userId));
             if (index !== -1) {

@@ -44,16 +44,52 @@ export class TaqiChatService implements OnApplicationBootstrap {
     url = "https://pleasant-bluejay-next.ngrok-free.app/makerDocker/completion"
 
     async onApplicationBootstrap() {
+        //await this.generateBlob()
         const cachedStores = fs.readdirSync(`${this.filesTempDirectory}vectorStores`)
         for (let folder of cachedStores) {
             try {
-                const store = await FaissStore.load(folder, this.embeddingModel)
+                const store = await FaissStore.load(`${this.filesTempDirectory}vectorStores/${folder}`, this.embeddingModel)
                 this.vectorStores.push({userId: folder, vectorStore: store})
             } catch {
                 console.log("No cached data in provided folder")
             }
         }
     }
+    //
+    // async generateBlob() {
+    //     const textSplitter = new RecursiveCharacterTextSplitter({
+    //         chunkSize: 512,
+    //         chunkOverlap: 0,
+    //     });
+    //     const buffer = fs.readFileSync(`${this.filesTempDirectory}temp/sst1800.pdf`)
+    //     const blob = new Blob([buffer], {type: "application/pdf"})
+    //     const blobBuffer = await blob.arrayBuffer()
+    //     const filePath = `${this.filesTempDirectory}temp/file.pdf`;
+    //     fs.writeFileSync(filePath, Buffer.from(blobBuffer));
+    //     let fileLoader: PDFLoader = new PDFLoader(filePath);
+    //     const documents = await fileLoader.load();
+    //     const splittedDocs = await textSplitter.splitDocuments(documents);
+    //     const fileVectorFormat = await FaissStore.fromDocuments(
+    //         splittedDocs,
+    //         this.embeddingModel,
+    //     );
+    //     const currentUserVectorStore = this.vectorStores.find(el => el.userId === "1")
+    //     if (currentUserVectorStore) {
+    //         await currentUserVectorStore.vectorStore.mergeFrom(fileVectorFormat)
+    //         await currentUserVectorStore.vectorStore.save(
+    //             `${this.filesTempDirectory}vectorStores/1`,
+    //         );
+    //     } else {
+    //         this.vectorStores.push({
+    //             userId: "1",
+    //             vectorStore: fileVectorFormat
+    //         })
+    //         await fileVectorFormat.save(
+    //             `${this.filesTempDirectory}vectorStores/1`,
+    //         );
+    //     }
+    //     fs.unlinkSync(filePath);
+    // }
 
     async processText (userId: string, text: string) {
         const textSplitter = new RecursiveCharacterTextSplitter({

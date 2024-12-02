@@ -176,17 +176,18 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 fs.rmSync(filePath, { recursive: true, force: true });
             }
         }
-        // if (data.template) {
-        //     for (const step of data.template.steps) {
-        //         for (const note of step.notes) {
-        //             if (note.type === "doc") {
-        //                 await this.processFile(data.userId, note.FileId)
-        //             } else {
-        //                 await this.processText(data.userId, note.text)
-        //             }
-        //         }
-        //     }
-        // }
+        if (data.template) {
+            for (const step of data.template.steps) {
+                for (const note of step.notes) {
+                    if (note.text) {
+                        await this.processFile(data.userId, note.FileId)
+                    }
+                    // else {
+                    //     await this.processText(data.userId, note.text)
+                    // }
+                }
+            }
+        }
         const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
         if (!currentUserContext) {
             const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, if user's question is connected with Manifest or other Taqtile products use this information:

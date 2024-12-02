@@ -194,9 +194,9 @@ export class TaqiChatService implements OnApplicationBootstrap {
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's message and assist as good as you can
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
 ----------
-#User's message:
+#Question:
 ${finalQuestion}
 ----------
 ${data.chatHistory ? `Use previous chat history:
@@ -212,17 +212,17 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
             const searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
             const extraInfo = searchResult.reduce((acc, el) => acc + el.pageContent + " ", "")
             console.log(extraInfo)
-            const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, this is common information about your products:
+            const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team, this is common information about your products:
 ----------
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's message and assist as good as you can
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Try to answer user's question
 ----------
-#:
+#Question:
 ${finalQuestion}
 ----------
-Use additional information, which can help you to generate correct answer
+Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
 ----------
 #Additional information:
 ${extraInfo}

@@ -176,17 +176,17 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 fs.rmSync(filePath, { recursive: true, force: true });
             }
         }
-        if (data.template) {
-            for (const step of data.template.steps) {
-                for (const note of step.notes) {
-                    if (note.type === "doc") {
-                        await this.processFile(data.userId, note.FileId)
-                    } else {
-                        await this.processText(data.userId, note.text)
-                    }
-                }
-            }
-        }
+        // if (data.template) {
+        //     for (const step of data.template.steps) {
+        //         for (const note of step.notes) {
+        //             if (note.type === "doc") {
+        //                 await this.processFile(data.userId, note.FileId)
+        //             } else {
+        //                 await this.processText(data.userId, note.text)
+        //             }
+        //         }
+        //     }
+        // }
         const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
         if (!currentUserContext) {
             const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, if user's question is connected with Manifest or other Taqtile products use this information:
@@ -262,7 +262,7 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
-Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
+Check if information below is related to the question, if yes use additional information provided below to answer question, if not just say that you do not know
 ----------
 #Additional information:
 How to remove the steel insert from the table

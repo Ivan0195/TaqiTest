@@ -162,6 +162,9 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 finalQuestion = finalQuestion.replace(el, "")
             })
         }
+        if (usedHashtags.includes("#autotest")) {
+            return this.testTaqi()
+        }
         if (usedHashtags) {
             languageToUse = usedHashtags.find(el => el.includes("lang="))
         }
@@ -193,7 +196,7 @@ ${sharedData.commonInformation}
 ----------
 You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
 ----------
-#Questiom:
+#Question:
 ${finalQuestion}
 ----------
 ${data.chatHistory ? `Use previous chat history:
@@ -229,6 +232,7 @@ ${data.chatHistory ? `Use previous chat history:
 #Chat history:
 ${data.chatHistory.map((el) => {
                 return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
             return answer.data.content

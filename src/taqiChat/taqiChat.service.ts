@@ -162,7 +162,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 finalQuestion = finalQuestion.replace(el, "")
             })
         }
-        if (usedHashtags ?? usedHashtags.includes("#autotest")) {
+        if (usedHashtags && usedHashtags.includes("#autotest")) {
             return this.testTaqi()
         }
         if (usedHashtags) {

@@ -194,9 +194,9 @@ export class TaqiChatService implements OnApplicationBootstrap {
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's message and assist as good as you can
 ----------
-#Question:
+#User's message:
 ${finalQuestion}
 ----------
 ${data.chatHistory ? `Use previous chat history:
@@ -217,9 +217,9 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
 #Common information:
 ${sharedData.commonInformation}
 ----------
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's question
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Answer user's message and assist as good as you can
 ----------
-#Question:
+#:
 ${finalQuestion}
 ----------
 Use additional information, which can help you to generate correct answer

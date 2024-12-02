@@ -256,13 +256,12 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
                 finalQuestion = finalQuestion.replace(el, "")
             })
         }
-        const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team, this is common information about your products:
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Try to answer user's question
+        const prompt = `<s>[INST]
 ----------
 #Question:
 ${finalQuestion}
 ----------
-Check if information below is related to the question, if yes use additional information provided below to answer question, if not just say that you do not know
+Check if information below is related to the question 
 ----------
 #Additional information:
 How to remove the steel insert from the table
@@ -272,6 +271,7 @@ To remove the steel insert from the table, find the circular hole with a diamete
 Insert your index finger into this hole, and pull the steel insert upward at an angle of approximately 30 degrees (until it stops) using your index finger.
 Once the blade is lifted halfway, pull the blade towards you to release the tabs from the grooves.
 ----------
+it question is not related to additional information do not give any instructions and just say that you dont know, if yes answer question only using additional information
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:

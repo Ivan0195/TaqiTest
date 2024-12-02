@@ -239,6 +239,50 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
         }
     }
 
+    async tipsTest(
+        data: {
+            userId: string,
+            template?: ITemplate,
+            question: string,
+            dropContext?: boolean,
+            chatHistory?: IChatMessage[],
+        }
+    ) {
+        let languageToUse
+        let finalQuestion = data.question
+        const usedHashtags = data.question.match(this.hashRegex)
+        if (usedHashtags) {
+            usedHashtags.forEach(el => {
+                finalQuestion = finalQuestion.replace(el, "")
+            })
+        }
+        const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team, this is common information about your products:
+You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Try to answer user's question
+----------
+#Question:
+${finalQuestion}
+----------
+Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
+----------
+#Additional information:
+How to remove the steel insert from the table
+Before starting work, make sure that the circular saw is unplugged (remove the plug from the socket). Always wear protective gloves to avoid injuring your hands during the operation. Set the saw blade to the maximum cutting depth. .
+Set it to position 00 and lock it.
+To remove the steel insert from the table, find the circular hole with a diameter of 4 cm on the steel insert.Iinsert your index finger into this hole, and pull the steel insert upward at an angle of approximately 30 degrees (until it stops) using your index finger.
+Insert your index finger into this hole, and pull the steel insert upward at an angle of approximately 30 degrees (until it stops) using your index finger.
+Once the blade is lifted halfway, pull the blade towards you to release the tabs from the grooves.
+----------
+${data.chatHistory ? `Use previous chat history:
+----------
+#Chat history:
+${data.chatHistory.map((el) => {
+                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
+[/INST]`
+            const answer = await getLlmAnswer(prompt)
+            return answer.data.content
+    }
+
     async testTaqi () {
         const answer = await getTestLlmAnswer()
         return answer.data.status

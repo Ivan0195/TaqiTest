@@ -26,7 +26,6 @@ interface INote {
     type: 'text' | 'doc';
     title: string;
     text?: string;
-    FileId?: Blob
 }
 
 export interface IChatMessage {
@@ -180,10 +179,10 @@ export class TaqiChatService implements OnApplicationBootstrap {
             for (const step of data.template.steps) {
                 for (const note of step.notes) {
                     if (note.text) {
-                        await this.processFile(data.userId, note.FileId)
+                        await this.processText(data.userId, note.text)
                     }
                     // else {
-                    //     await this.processText(data.userId, note.text)
+                    //   await this.processFile(data.userId, note.FileId)
                     // }
                 }
             }

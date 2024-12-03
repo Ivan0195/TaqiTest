@@ -39,7 +39,7 @@ export interface IChatMessage {
 
 export interface IFile {
     id: number,
-    blob: Blob
+    blob: Buffer
 }
 
 interface INoteFile {
@@ -134,15 +134,14 @@ export class TaqiChatService implements OnApplicationBootstrap {
 
     async processFile(
         userId: string,
-        file: Blob,
+        file: Buffer,
     ) {
         const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 512,
             chunkOverlap: 0,
         });
-        const blobBuffer = await file.arrayBuffer()
         const filePath = `${this.filesTempDirectory}temp/file.pdf`;
-        fs.writeFileSync(filePath, Buffer.from(blobBuffer));
+        fs.writeFileSync(filePath, Buffer.from(file));
         let fileLoader: PDFLoader = new PDFLoader(filePath);
         const documents = await fileLoader.load();
         const splittedDocs = await textSplitter.splitDocuments(documents);

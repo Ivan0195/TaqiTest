@@ -39,7 +39,7 @@ export interface IChatMessage {
 
 export interface IFile {
     id: number,
-    Blob: Blob
+    blob: Blob
 }
 
 interface INoteFile {
@@ -207,7 +207,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
                         for (const noteFile of note.files) {
                             const currentNoteFile = data.files.find(dataFilesItem => dataFilesItem.id === noteFile.id)
                            if (currentNoteFile) {
-                               await this.processFile(data.userId, currentNoteFile.Blob)
+                               await this.processFile(data.userId, currentNoteFile.blob)
                            }
                         }
                     }

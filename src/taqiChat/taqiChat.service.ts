@@ -8,24 +8,28 @@ import {getLlmAnswer, getTestLlmAnswer} from "./api/llmApi";
 import {sharedData} from "./sharedData";
 
 export interface ITemplate {
-    id: number;
-    title: string;
-    assetClass: IAssetClass;
-    steps: IStep[];
+    id: number,
+    title: string,
+    assetClass: IAssetClass,
+    steps: IStep[],
 }
+
 interface IAssetClass {
-name: string;
-description: string;
+    name: string,
+    description: string,
 }
+
 interface IStep {
-title: string;
-step: number;
-notes: INote[];
+    title: string,
+    step: number,
+    notes: INote[],
 }
+
 interface INote {
-    type: 'text' | 'doc';
-    title: string;
-    text?: string;
+    type: 'text' | 'doc',
+    title: string,
+    text?: string,
+    files: INoteFile[]
 }
 
 export interface IChatMessage {
@@ -33,11 +37,27 @@ export interface IChatMessage {
     message: string
 }
 
+export interface IFile {
+    id: number,
+    Blob: Blob
+}
+
+interface INoteFile {
+    id?: number,
+    name?: string,
+    url?: string,
+    isDefault?: boolean | null,
+    fileType?: string,
+    contentType?: string,
+    entityType?: string,
+    originalName?: string,
+}
+
 @Injectable()
 export class TaqiChatService implements OnApplicationBootstrap {
     hashRegex = /(^|\s)(#[a-z+=\d-]+)/ig
 
-    vectorStores: {vectorStore: FaissStore, userId: String}[] = [];
+    vectorStores: { vectorStore: FaissStore, userId: String }[] = [];
     embeddingModel = new HuggingFaceTransformersEmbeddings();
     filesTempDirectory = `./src/taqiChat/`;
     url = "https://pleasant-bluejay-next.ngrok-free.app/makerDocker/completion"
@@ -54,6 +74,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             }
         }
     }
+
     //
     // async generateBlob() {
     //     const textSplitter = new RecursiveCharacterTextSplitter({
@@ -90,7 +111,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
     //     fs.unlinkSync(filePath);
     // }
 
-    async processText (userId: string, text: string) {
+    async processText(userId: string, text: string) {
         const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 512,
             chunkOverlap: 0,
@@ -151,6 +172,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             question: string,
             dropContext?: boolean,
             chatHistory?: IChatMessage[],
+            files?: IFile[],
         }
     ) {
         let languageToUse
@@ -172,7 +194,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             if (index !== -1) {
                 this.vectorStores.splice(index, 1);
                 const filePath = `${this.filesTempDirectory}vectorStores/${data.userId}`
-                fs.rmSync(filePath, { recursive: true, force: true });
+                fs.rmSync(filePath, {recursive: true, force: true});
             }
         }
         if (data.template) {
@@ -181,9 +203,14 @@ export class TaqiChatService implements OnApplicationBootstrap {
                     if (note.text) {
                         await this.processText(data.userId, note.text)
                     }
-                    // else {
-                    //   await this.processFile(data.userId, note.FileId)
-                    // }
+                    if (data.files && data.files.length && note.files && note.files.length) {
+                        for (const noteFile of note.files) {
+                            const currentNoteFile = data.files.find(dataFilesItem => dataFilesItem.id === noteFile.id)
+                           if (currentNoteFile) {
+                               await this.processFile(data.userId, currentNoteFile.Blob)
+                           }
+                        }
+                    }
                 }
             }
         }
@@ -203,7 +230,8 @@ ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
-                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
+            }).reduce((acc, el) => acc + el, "")}----------` : ''}
 ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
@@ -231,7 +259,8 @@ ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
-                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
+            }).reduce((acc, el) => acc + el, "")}----------` : ''}
 ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
 [/INST]`
             const answer = await getLlmAnswer(prompt)
@@ -276,14 +305,15 @@ ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
 ${data.chatHistory.map((el) => {
-                return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`}).reduce((acc, el) => acc + el, "")}----------` : ''}
+            return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
+        }).reduce((acc, el) => acc + el, "")}----------` : ''}
 ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
 [/INST]`
-            const answer = await getLlmAnswer(prompt)
-            return answer.data.content
+        const answer = await getLlmAnswer(prompt)
+        return answer.data.content
     }
 
-    async testTaqi () {
+    async testTaqi() {
         const answer = await getTestLlmAnswer()
         return answer.data.status
     }

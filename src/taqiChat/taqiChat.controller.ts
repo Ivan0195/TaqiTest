@@ -5,7 +5,7 @@ import {
     Body,
     Get
 } from '@nestjs/common';
-import {IChatMessage, ITemplate, TaqiChatService} from './taqiChat.service';
+import {IChatMessage, IFile, ITemplate, TaqiChatService} from './taqiChat.service';
 
 @Controller('taqiChat')
 export class TaqiChatController {
@@ -40,6 +40,7 @@ export class TaqiChatController {
             question: string,
             dropContext?: boolean,
             chatHistory?: IChatMessage[],
+            files?: IFile[]
         }
     ) {
         try {

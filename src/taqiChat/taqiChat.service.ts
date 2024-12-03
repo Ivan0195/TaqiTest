@@ -127,7 +127,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 vectorStore: textVectorFormat
             })
         }
-        await currentUserVectorStore.vectorStore.save(
+        await this.vectorStores.find(el => el.userId === userId).vectorStore.save(
             `${this.filesTempDirectory}vectorStores/${userId}`,
         );
     }
@@ -159,7 +159,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
                 vectorStore: fileVectorFormat
             })
         }
-        await currentUserVectorStore.vectorStore.save(
+        await this.vectorStores.find(el => el.userId === userId).vectorStore.save(
             `${this.filesTempDirectory}vectorStores/${userId}`,
         );
         fs.unlinkSync(filePath);

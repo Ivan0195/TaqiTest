@@ -3,9 +3,10 @@ import {
     HttpException,
     Post,
     Body,
-    Get
+    Get, UseInterceptors, UploadedFiles
 } from '@nestjs/common';
 import {IChatMessage, IFile, ITemplate, TaqiChatService} from './taqiChat.service';
+import {FilesInterceptor} from "@nestjs/platform-express";
 
 @Controller('taqiChat')
 export class TaqiChatController {
@@ -33,18 +34,19 @@ export class TaqiChatController {
     }
 
     @Post('getAnswer')
+    @UseInterceptors(FilesInterceptor('files'))
     async generateAnswer(
         @Body() data: {
             userId: string,
-            template?: ITemplate,
+            template?: string,
             question: string,
             dropContext?: boolean,
             chatHistory?: IChatMessage[],
-            files?: IFile[]
-        }
+        },
+    @UploadedFiles() files: Express.Multer.File[]
     ) {
         try {
-                return await this.taqiChatService.generateAnswer(data);
+                return await this.taqiChatService.generateAnswer({...data, files});
         } catch (err) {
             if (err.message) {
                 throw new HttpException(err.message, err.status);

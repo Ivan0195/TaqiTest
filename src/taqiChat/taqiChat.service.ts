@@ -64,6 +64,9 @@ export class TaqiChatService implements OnApplicationBootstrap {
 
     async onApplicationBootstrap() {
         //await this.generateBlob()
+        const buffer = fs.readFileSync(`${this.filesTempDirectory}temp/tmp.txt`).toString('utf-8')
+        const filePath = `${this.filesTempDirectory}temp/file.pdf`;
+        fs.writeFileSync(filePath, Buffer.from(buffer));
         const cachedStores = fs.readdirSync(`${this.filesTempDirectory}vectorStores`)
         for (let folder of cachedStores) {
             try {
@@ -134,14 +137,15 @@ export class TaqiChatService implements OnApplicationBootstrap {
 
     async processFile(
         userId: string,
-        file: Buffer,
+        file: Express.Multer.File,
     ) {
+        console.log("fileProcessing")
         const textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 512,
             chunkOverlap: 0,
         });
         const filePath = `${this.filesTempDirectory}temp/file.pdf`;
-        fs.writeFileSync(filePath, Buffer.from(file));
+        fs.writeFileSync(filePath, file.buffer);
         let fileLoader: PDFLoader = new PDFLoader(filePath);
         const documents = await fileLoader.load();
         const splittedDocs = await textSplitter.splitDocuments(documents);
@@ -161,17 +165,18 @@ export class TaqiChatService implements OnApplicationBootstrap {
         await this.vectorStores.find(el => el.userId === userId).vectorStore.save(
             `${this.filesTempDirectory}vectorStores/${userId}`,
         );
+        console.log("success")
         fs.unlinkSync(filePath);
     }
 
     async generateAnswer(
         data: {
             userId: string,
-            template?: ITemplate,
+            template?: string,
             question: string,
             dropContext?: boolean,
             chatHistory?: IChatMessage[],
-            files?: IFile[],
+            files?: Express.Multer.File[],
         }
     ) {
         let languageToUse
@@ -197,17 +202,16 @@ export class TaqiChatService implements OnApplicationBootstrap {
             }
         }
         if (data.template) {
-            for (const step of data.template.steps) {
+            console.log(data.template)
+            const parsedTemplate = JSON.parse(data.template) as ITemplate
+            for (const step of parsedTemplate.steps) {
                 for (const note of step.notes) {
                     if (note.text) {
                         await this.processText(data.userId, note.text)
                     }
                     if (data.files && data.files.length && note.files && note.files.length) {
-                        for (const noteFile of note.files) {
-                            const currentNoteFile = data.files.find(dataFilesItem => dataFilesItem.id === noteFile.id)
-                           if (currentNoteFile) {
-                               await this.processFile(data.userId, currentNoteFile.blob)
-                           }
+                        for (const file of data.files) {
+                               await this.processFile(data.userId, file)
                         }
                     }
                 }

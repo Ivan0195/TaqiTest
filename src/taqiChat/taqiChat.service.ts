@@ -193,11 +193,11 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
-${usedHashtags.find(el => el === '#manifest') && `Use this FAQ information to lead user how to use manifest
+${usedHashtags.length && usedHashtags.find(el => el === '#manifest') ? `Use this FAQ information to lead user how to use manifest
 ----------
 #FAQ information:
 ${sharedData.faq}
-----------`}
+----------` : ``}
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
@@ -228,11 +228,11 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
-${usedHashtags.find(el => el === '#manifest') && `Use this FAQ information to lead user how to use manifest
+${usedHashtags.length && usedHashtags.find(el => el === '#manifest') ? `Use this FAQ information to lead user how to use manifest
 ----------
 #FAQ information:
 ${sharedData.faq}
-----------`}
+----------` : ``}
 Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
 ----------
 #Additional information:

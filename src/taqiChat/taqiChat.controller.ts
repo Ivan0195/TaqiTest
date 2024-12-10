@@ -41,7 +41,7 @@ export class TaqiChatController {
             template?: string,
             question: string,
             dropContext?: boolean,
-            chatHistory?: IChatMessage[],
+            chatHistory?: string,
         },
     @UploadedFiles() files: Express.Multer.File[]
     ) {

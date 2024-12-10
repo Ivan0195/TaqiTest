@@ -139,7 +139,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             template?: string,
             question: string,
             dropContext?: boolean,
-            chatHistory?: IChatMessage[],
+            chatHistory?: string,
             files?: Express.Multer.File[],
         }
     ) {
@@ -169,6 +169,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             console.log(data.template)
             const parsedTemplate = JSON.parse(data.template) as ITemplate
             for (const step of parsedTemplate.steps) {
+                await this.processText(data.userId, step.title)
                 for (const note of step.notes) {
                     if (note.text) {
                         await this.processText(data.userId, note.text)
@@ -202,7 +203,7 @@ ${sharedData.faq}
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
-${data.chatHistory.map((el) => {
+${JSON.parse(data.chatHistory).map((el) => {
                 return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
             }).reduce((acc, el) => acc + el, "")}----------` : ''}
 ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
@@ -242,7 +243,7 @@ ${extraInfo}
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
-${data.chatHistory.map((el) => {
+${JSON.parse(data.chatHistory).map((el) => {
                 return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
             }).reduce((acc, el) => acc + el, "")}----------` : ''}
 ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}

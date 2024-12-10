@@ -193,7 +193,7 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
-${usedHashtags.length && usedHashtags.find(el => el === '#manifest') ? `Use this FAQ information to lead user how to use manifest
+${(usedHashtags && usedHashtags.find(el => el === '#manifest')) ? `Use this FAQ information to lead user how to use manifest
 ----------
 #FAQ information:
 ${sharedData.faq}
@@ -228,7 +228,7 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
-${usedHashtags.length && usedHashtags.find(el => el === '#manifest') ? `Use this FAQ information to lead user how to use manifest
+${(usedHashtags && usedHashtags.find(el => el === '#manifest')) ? `Use this FAQ information to lead user how to use manifest
 ----------
 #FAQ information:
 ${sharedData.faq}

@@ -1,34 +1,5 @@
 export const sharedData = {
-    commonInformation: `Manifest is made by Taqtile. Workers use the Manifest software platform to capture and document expert knowledge and follow step-by-step spatial computing work instructions to help complete jobs more consistently and error-free. Easily capture and harness the knowledge of your experts and most experienced employees
-Easy and fast start to building augmented reality work instructions with minimal configuration 
-No coding, development, CAD, or special skills needed 
-On-the-job and in-situ authoring and AR content creation on many different devices 
-Support for static and animated 3D models and objects, digital twins, and augmented reality
-Apply expert knowledge to help workers complete jobs and training more consistently and accurately
-Easy to follow step-by-step instructions augmented with augmented reality technology, 3D objects, videos, photos, digital documents, and real-time IoT sensor data  
-Worker generated video, audio and text notes for evidence of job completion and accuracy 
-Shared work instructions with job assignments across multiple workers 
-Complex branched, nonlinear workflow guidance
-Complete fault reporting system to easily flag, resolve, and archive operational and procedural faults for improving auditing and inspections 
-Remotely connect, collaborate, and assist
-Integrated connectivity and collaboration capabilities to enable video chats and file sharing 
-“See-what-I-see” video streaming and sharing 
-Remote direction and guidance with augmented reality and eye tracking 
-Designed for low bandwidth but works great on the latest 5G networks
-Manage, coordinate, and track job performance
-Scheduling and assigning of jobs across teams and individuals, regardless of location 
-Complete job performance history by equipment, location, worker and team and inclusive of IoT sensor data 
-Integration with back-end enterprise systems of record including MES, ERP, LMS, field service systems Ability to automatically trigger downstream workflows such as part ordering and technician scheduling 
-Leverage enterprise capabilities to scale Manifest usage across your organization
-Organize and control access to your work instructions and operational data by operations, location, business unit, users, and skill level with a customizable, 7 level data hierarchy 
-Use editorial and approval workflows to track versions of work instructions and ensure workers only have access to the approved, published version. 
-Leverage an enterprise-grade, secure platform with encryption, backup, and role-based access 
-Build once and use on a broad set of devices including tablets, PCs, and headsets. 
-Author and operatie online or offline in secure, remote, and austere locations 
-Easily deploy on our SAAS infrastructure or leverage Manifest’s containerized architecture to utilize multi-cloud, hybrid, on-premises, or 5G/MEC deployment options 
-Collect operational data for continuous improvement, data analysis and ML, AI-based preventive maintenance solutions
-Manifest can collect and aggregate workforce operational data, maintenance history and IoT data that enables data analysis for many usages including compliance, audits, continuous improvements, and other reporting needs.  and It can also provide the equipment and location-specific data sets needed to inform machine learning (ML) and artificial intelligence (AI)-driven preventive maintenance algorithms and solutions.Let’s get started! Follow these simple steps to set up your account and unlock the full potential of Manifest.
-What devices does Manifest support? 
+    faq: `What devices does Manifest support? 
 Manifest supports a wide range of devices to provide choice and flexibility to choose the right tool for the job. Manifest supports head mounted devices such as HoloLens 2, Magic Leap 1, wearables like RealWear, iPads, Android devices and the Chrome browser. 
 Do you need a PC to use Manifest? 
 No. A PC is not needed to use Manifest. Access to a browser – on a PC, on a tablet, on a phone, or other devices – is required.  It is worth noting that many Manifest users prefer to use a PC to “pre-author” templates and content because a keyboard and mouse can be the most efficient method of creating large amounts of content – but it is not necessary. 
@@ -66,9 +37,7 @@ To stop any immersive applications from running and to keep them from running in
 Install the latest version of Manifest from the respective App Stores.  
 The Manifest Web Application, optimized for Google Chrome, can be accessed from a desktop browser using the following URL format: https://manifestdomain.taqmanifest.com/ 
 Manifest gives deskless workers access to step-by-step guidance and remote assistance from your most experienced technicians and trainers anywhere, anytime 
-
 By leveraging augmented reality, Taqtile’s Manifest, an enterprise SaaS platform, improves operational workflows so that jobs get done more accurately and consistently. Using Manifest, deskless workers document maintenance and operational procedures, follow step-by-step instructions, remotely collaborate with experts, and analyze job performance and history. 
-
 Easily capture and harness the knowledge of your experts and most experienced employees 
 Easy and fast start with minimal configuration 
 No coding, development, CAD, or specialists needed 
@@ -117,5 +86,6 @@ The Manifest data structure centers around the following four core data types; L
 Manifest basic data configuration 
 Once the Security Administrator or Administrator has an understanding of the Manifest Data Structure, data should be configured in the Manifest Web Application.
 `,
-    contacts: ""
+    contacts: "",
+    commonInformation: "Manifest is made by Taqtile. Workers use the Manifest software platform to capture and document expert knowledge and follow step-by-step spatial computing work instructions to help complete jobs more consistently and error-free. Easily capture and harness the knowledge of your experts and most experienced employees\nEasy and fast start to building augmented reality work instructions with minimal configuration \nNo coding, development, CAD, or special skills needed \nOn-the-job and in-situ authoring and AR content creation on many different devices \nSupport for static and animated 3D models and objects, digital twins, and augmented reality\nApply expert knowledge to help workers complete jobs and training more consistently and accurately\nEasy to follow step-by-step instructions augmented with augmented reality technology, 3D objects, videos, photos, digital documents, and real-time IoT sensor data  \nWorker generated video, audio and text notes for evidence of job completion and accuracy \nShared work instructions with job assignments across multiple workers \nComplex branched, nonlinear workflow guidance\nComplete fault reporting system to easily flag, resolve, and archive operational and procedural faults for improving auditing and inspections \nRemotely connect, collaborate, and assist\nIntegrated connectivity and collaboration capabilities to enable video chats and file sharing \n“See-what-I-see” video streaming and sharing \nRemote direction and guidance with augmented reality and eye tracking \nDesigned for low bandwidth but works great on the latest 5G networks\nManage, coordinate, and track job performance\nScheduling and assigning of jobs across teams and individuals, regardless of location \nComplete job performance history by equipment, location, worker and team and inclusive of IoT sensor data \nIntegration with back-end enterprise systems of record including MES, ERP, LMS, field service systems Ability to automatically trigger downstream workflows such as part ordering and technician scheduling \nLeverage enterprise capabilities to scale Manifest usage across your organization\nOrganize and control access to your work instructions and operational data by operations, location, business unit, users, and skill level with a customizable, 7 level data hierarchy \nUse editorial and approval workflows to track versions of work instructions and ensure workers only have access to the approved, published version. \nLeverage an enterprise-grade, secure platform with encryption, backup, and role-based access \nBuild once and use on a broad set of devices including tablets, PCs, and headsets. \nAuthor and operatie online or offline in secure, remote, and austere locations \nEasily deploy on our SAAS infrastructure or leverage Manifest’s containerized architecture to utilize multi-cloud, hybrid, on-premises, or 5G/MEC deployment options \nCollect operational data for continuous improvement, data analysis and ML, AI-based preventive maintenance solutions\nManifest can collect and aggregate workforce operational data, maintenance history and IoT data that enables data analysis for many usages including compliance, audits, continuous improvements, and other reporting needs.  and It can also provide the equipment and location-specific data sets needed to inform machine learning (ML) and artificial intelligence (AI)-driven preventive maintenance algorithms and solutions.Let’s get started! Follow these simple steps to set up your account and unlock the full potential of Manifest.\n"
 }

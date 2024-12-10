@@ -4,7 +4,7 @@ import {FaissStore} from '@langchain/community/vectorstores/faiss';
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import {PDFLoader} from '@langchain/community/document_loaders/fs/pdf';
 import * as fs from "fs";
-import {getLlmAnswer, getTestLlmAnswer} from "./api/llmApi";
+import {getLlmAnswer, getTestLlmAnswer, getTextTranslation} from "./api/llmApi";
 import {sharedData} from "./sharedData";
 
 export interface ITemplate {
@@ -77,42 +77,6 @@ export class TaqiChatService implements OnApplicationBootstrap {
             }
         }
     }
-
-    //
-    // async generateBlob() {
-    //     const textSplitter = new RecursiveCharacterTextSplitter({
-    //         chunkSize: 512,
-    //         chunkOverlap: 0,
-    //     });
-    //     const buffer = fs.readFileSync(`${this.filesTempDirectory}temp/sst1800.pdf`)
-    //     const blob = new Blob([buffer], {type: "application/pdf"})
-    //     const blobBuffer = await blob.arrayBuffer()
-    //     const filePath = `${this.filesTempDirectory}temp/file.pdf`;
-    //     fs.writeFileSync(filePath, Buffer.from(blobBuffer));
-    //     let fileLoader: PDFLoader = new PDFLoader(filePath);
-    //     const documents = await fileLoader.load();
-    //     const splittedDocs = await textSplitter.splitDocuments(documents);
-    //     const fileVectorFormat = await FaissStore.fromDocuments(
-    //         splittedDocs,
-    //         this.embeddingModel,
-    //     );
-    //     const currentUserVectorStore = this.vectorStores.find(el => el.userId === "1")
-    //     if (currentUserVectorStore) {
-    //         await currentUserVectorStore.vectorStore.mergeFrom(fileVectorFormat)
-    //         await currentUserVectorStore.vectorStore.save(
-    //             `${this.filesTempDirectory}vectorStores/1`,
-    //         );
-    //     } else {
-    //         this.vectorStores.push({
-    //             userId: "1",
-    //             vectorStore: fileVectorFormat
-    //         })
-    //         await fileVectorFormat.save(
-    //             `${this.filesTempDirectory}vectorStores/1`,
-    //         );
-    //     }
-    //     fs.unlinkSync(filePath);
-    // }
 
     async processText(userId: string, text: string) {
         const textSplitter = new RecursiveCharacterTextSplitter({
@@ -229,6 +193,11 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
+${usedHashtags.find(el => el === '#manifest') && `Use this FAQ information to lead user how to use manifest
+----------
+#FAQ information:
+${sharedData.faq}
+----------`}
 ${data.chatHistory ? `Use previous chat history:
 ----------
 #Chat history:
@@ -240,7 +209,13 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
             const answer = await getLlmAnswer(prompt)
             return answer.data.content
         } else {
-            const searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
+            let searchResult
+            if (usedHashtags.find(el => el.includes('lang='))) {
+                const questionTranslate = await getTextTranslation(data.question.replace("#dropcontext", ""))
+                searchResult = await currentUserContext.vectorStore.similaritySearch(questionTranslate, 20)
+            } else {
+                searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
+            }
             const extraInfo = searchResult.reduce((acc, el) => acc + el.pageContent + " ", "")
             console.log(extraInfo)
             const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team, this is common information about your products:
@@ -253,6 +228,11 @@ You are smart assistant. Act like a real human, do not let user know that you ar
 #Question:
 ${finalQuestion}
 ----------
+${usedHashtags.find(el => el === '#manifest') && `Use this FAQ information to lead user how to use manifest
+----------
+#FAQ information:
+${sharedData.faq}
+----------`}
 Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
 ----------
 #Additional information:

@@ -182,6 +182,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
             }
         }
         const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
+        console.log("dasdas")
         if (!currentUserContext) {
             const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, if user's question is connected with Manifest or other Taqtile products use this information:
 ----------

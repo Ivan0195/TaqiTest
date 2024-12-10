@@ -211,7 +211,7 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
             return answer.data.content
         } else {
             let searchResult
-            if (usedHashtags.find(el => el.includes('lang='))) {
+            if (usedHashtags && usedHashtags.find(el => el.includes('lang='))) {
                 const questionTranslate = await getTextTranslation(data.question.replace("#dropcontext", ""))
                 searchResult = await currentUserContext.vectorStore.similaritySearch(questionTranslate, 20)
             } else {

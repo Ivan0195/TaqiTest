@@ -6,6 +6,7 @@ import {PDFLoader} from '@langchain/community/document_loaders/fs/pdf';
 import * as fs from "fs";
 import {getLlmAnswer, getTestLlmAnswer, getTextTranslation} from "./api/llmApi";
 import {sharedData} from "./sharedData";
+import {PDFDocument} from "pdf-lib";
 
 export interface ITemplate {
     id: number,
@@ -86,7 +87,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
         const splittedText = await textSplitter.splitText(text);
         const textVectorFormat = await FaissStore.fromTexts(splittedText, [], this.embeddingModel)
         const currentUserVectorStore = this.vectorStores.find(el => el.userId === userId)
-        if (currentUserVectorStore) {
+        if (currentUserVectorStore && currentUserVectorStore.vectorStore) {
             await currentUserVectorStore.vectorStore.mergeFrom(textVectorFormat)
         } else {
             this.vectorStores.push({
@@ -101,24 +102,17 @@ export class TaqiChatService implements OnApplicationBootstrap {
 
     async processFile(
         userId: string,
-        file: Express.Multer.File,
+        filePath: string,
     ) {
-        console.log("fileProcessing")
-        const textSplitter = new RecursiveCharacterTextSplitter({
-            chunkSize: 512,
-            chunkOverlap: 0,
-        });
-        const filePath = `${this.filesTempDirectory}temp/file.pdf`;
-        fs.writeFileSync(filePath, file.buffer);
         let fileLoader: PDFLoader = new PDFLoader(filePath);
-        const documents = await fileLoader.load();
-        const splittedDocs = await textSplitter.splitDocuments(documents);
+        const splittedDocs = await fileLoader.load()
+        console.log(splittedDocs.length)
         const fileVectorFormat = await FaissStore.fromDocuments(
             splittedDocs,
             this.embeddingModel,
         );
         const currentUserVectorStore = this.vectorStores.find(el => el.userId === userId)
-        if (currentUserVectorStore) {
+        if (currentUserVectorStore && currentUserVectorStore.vectorStore) {
             await currentUserVectorStore.vectorStore.mergeFrom(fileVectorFormat)
         } else {
             this.vectorStores.push({
@@ -129,8 +123,6 @@ export class TaqiChatService implements OnApplicationBootstrap {
         await this.vectorStores.find(el => el.userId === userId).vectorStore.save(
             `${this.filesTempDirectory}vectorStores/${userId}`,
         );
-        console.log("success")
-        fs.unlinkSync(filePath);
     }
 
     async generateAnswer(
@@ -143,9 +135,13 @@ export class TaqiChatService implements OnApplicationBootstrap {
             files?: Express.Multer.File[],
         }
     ) {
+        if (!data.chatHistory || !data.chatHistory.length) {
+            return 'Hi, I\'m TAQi, AI assistant, please tell me what template you are currently working with, provide the number in the format #templateId=123456. '
+        }
         let languageToUse
         let finalQuestion = data.question
         const usedHashtags = data.question.match(this.hashRegex)
+
         if (usedHashtags) {
             usedHashtags.forEach(el => {
                 finalQuestion = finalQuestion.replace(el, "")
@@ -166,24 +162,38 @@ export class TaqiChatService implements OnApplicationBootstrap {
             }
         }
         if (data.template) {
-            console.log(data.template)
+            const currentUserVectorStore = this.vectorStores.find(el => el.userId === data.userId)
+            if (currentUserVectorStore) {
+                currentUserVectorStore.vectorStore = null
+            }
             const parsedTemplate = JSON.parse(data.template) as ITemplate
-            for (const step of parsedTemplate.steps) {
-                await this.processText(data.userId, step.title)
-                for (const note of step.notes) {
-                    if (note.text) {
-                        await this.processText(data.userId, note.text)
-                    }
-                    if (data.files && data.files.length && note.files && note.files.length) {
-                        for (const file of data.files) {
-                               await this.processFile(data.userId, file)
+            if (data.files && data.files.length) {
+                console.log("found doc")
+                const mergedPdf = await PDFDocument.create();
+                for (const file of data.files) {
+                    const pdf = await PDFDocument.load(file.buffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => {
+                        mergedPdf.addPage(page);
+                    });
+                }
+                const filePath = `${this.filesTempDirectory}temp/merged_file.pdf`;
+                const bytes = await mergedPdf.save()
+                fs.writeFileSync(filePath, bytes);
+                await this.processFile(data.userId, filePath)
+            }
+            if (parsedTemplate.steps && parsedTemplate.steps.length) {
+                for (const step of parsedTemplate.steps) {
+                    await this.processText(data.userId, step.title)
+                    for (const note of step.notes) {
+                        if (note.text) {
+                            await this.processText(data.userId, note.text)
                         }
                     }
                 }
             }
         }
         const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
-        console.log("dasdas")
         if (!currentUserContext) {
             const prompt = `<s>[INST]Your name is Taqi - part of Manifest team, if user's question is connected with Manifest or other Taqtile products use this information:
 ----------
@@ -200,7 +210,7 @@ ${(usedHashtags && usedHashtags.includes('#manifest')) ? `Use this FAQ informati
 #FAQ information:
 ${sharedData.faq}
 ----------` : ``}
-${data.chatHistory ? `Use previous chat history:
+${false ? `Use previous chat history:
 ----------
 #Chat history:
 ${JSON.parse(data.chatHistory).map((el) => {
@@ -213,41 +223,42 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
         } else {
             let searchResult
             if (usedHashtags && usedHashtags.find(el => el.includes('lang='))) {
-                const questionTranslate = await getTextTranslation(data.question.replace("#dropcontext", ""))
+                const questionTranslate = await getTextTranslation(finalQuestion)
                 searchResult = await currentUserContext.vectorStore.similaritySearch(questionTranslate, 20)
             } else {
-                searchResult = await currentUserContext.vectorStore.similaritySearch(data.question.replace("#dropcontext", ""), 20)
+                const retriever = currentUserContext.vectorStore.asRetriever({k: 20})
+                searchResult = await retriever.invoke(finalQuestion)
             }
+
             const extraInfo = searchResult.reduce((acc, el) => acc + el.pageContent + " ", "")
             console.log(extraInfo)
-            const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team, this is common information about your products:
-----------
-#Common information:
-${sharedData.commonInformation}
-----------
-You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence. Try to answer user's question
-----------
-#Question:
-${finalQuestion}
-----------
-${(usedHashtags && usedHashtags.includes('#manifest')) ? `Use this FAQ information to lead user how to use manifest
-----------
-#FAQ information:
-${sharedData.faq}
-----------` : ``}
-Check if information below is related to the question, if yes use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
-----------
-#Additional information:
-${extraInfo}
-----------
-${data.chatHistory ? `Use previous chat history:
-----------
-#Chat history:
-${JSON.parse(data.chatHistory).map((el) => {
+            const prompt = `<s>[INST]Your name is Taqi - part of Taqtile Manifest team.${sharedData.commonInformation}
+            ----------
+            You are smart assistant. Act like a real human, do not let user know that you are artificial intelligence
+            ${(usedHashtags && usedHashtags.includes('#manifest')) ? `Use this FAQ information to lead user how to use manifest
+            ----------
+            #FAQ information:
+            ${sharedData.faq}
+            ----------` : ``}
+            ${false ? `Use previous chat history:
+            ----------
+            #Chat history:
+            ${JSON.parse(data.chatHistory).map((el) => {
                 return `${el.author === "user" ? `User: ${el.message}\n` : `Taqi: ${el.message}\n`}`
             }).reduce((acc, el) => acc + el, "")}----------` : ''}
-${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
-[/INST]`
+            ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : ''}
+            
+            Check if additional information below is somehow related to user's question
+            ----------
+            #Question:
+            ${finalQuestion}
+            ----------
+            #Additional information:
+            ${extraInfo}
+            ----------
+            if it is related use additional information provided below to answer question, if it is not related just say that you do not know how to answer user's question
+            use only additional information to answer the question
+            [/INST]`
             const answer = await getLlmAnswer(prompt)
             return answer.data.content
         }

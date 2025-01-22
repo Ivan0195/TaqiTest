@@ -1,8 +1,7 @@
 import {Injectable} from "@nestjs/common";
-import { RecursiveUrlLoader } from "@langchain/community/document_loaders/web/recursive_url";
-import { compile } from "html-to-text";
 import axios from "axios";
 import {graphqlQueries} from "../taqiChat/graphqlQueries";
+import * as fs from "fs";
 
 
 @Injectable()
@@ -11,9 +10,31 @@ export class PtakDemoService {
     llama;
     getllama;
     llamaChatSession;
-    jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTY3LCJzdWJkb21haW4iOiJ0ZXN0IiwiZGV2aWNlSWQiOm51bGwsImp0aSI6IiQyYiQxMCRzWC52eUlINFQwQ2tvd3BwejBRMlZlcEk4WmQ2cmljRTUzTjllczZRNy5XTkJJTkhOSVplTyIsImlhdCI6MTczNjkzNzcyMSwiZXhwIjoxNzM5NTI5NzIxfQ.kS_PDlhGo5rO_6lMkohMVtcYwKvDChp1TyUSSgCVGPc"
+    manifestUrl = `${process.env.MANIFEST_API_URL}/graphql/v3?storage=manifest`
 
-    async checkForFault() {
+    // async uploadPhoto() {
+    //     const data = new FormData();
+    //
+    //     data.append('file', fs.createReadStream('image2.jpg'));
+    //     data.append('contentType', 'image');
+    //
+    //     const config = {
+    //         method: 'post',
+    //         maxBodyLength: Infinity,
+    //         url: this.manifestUrl,
+    //         headers: {
+    //             'Authorization': process.env.JWT_TOKEN,
+    //             'Accept': 'application/json'
+    //         },
+    //         data : data
+    //     };
+    //
+    //     const fileId = await axios(config)
+    //
+    //     return fileId.data
+    // }
+
+    async checkForFault(prompt: string) {
         const { getLlama, LlamaChatSession, defineChatSessionFunction } = await import("node-llama-cpp");
         this.getllama = getLlama;
         this.llamaChatSession = LlamaChatSession;
@@ -25,6 +46,8 @@ export class PtakDemoService {
         const session = new LlamaChatSession({
             contextSequence: context.getSequence(),
         });
+
+       // const getPhotoId = this.uploadPhoto
 
         const functions = {
             checkPressure: defineChatSessionFunction({
@@ -39,8 +62,11 @@ export class PtakDemoService {
                 },
                 async handler(params: {pressure: number}) {
                     console.log(params)
-                    if (params.pressure < 1 || params.pressure > 5) {
-                        const serverAnswer = await axios.post("http://192.168.1.120:85/graphql/v3",{
+                    if (params.pressure < 8 || params.pressure > 10) {
+
+                        //const photoId = await getPhotoId()
+
+                        const serverAnswer = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`,{
                             query: `mutation($data: FaultInput!) {addFault(data: $data)}`,
                             variables: {
                                 "data": {
@@ -75,7 +101,7 @@ export class PtakDemoService {
                         }, {
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': graphqlQueries.jwt
+                                'Authorization': process.env.JWT_TOKEN
                             }
                         })
                         console.log(serverAnswer.data)
@@ -86,10 +112,9 @@ export class PtakDemoService {
                 }
             }),
         };
-        const q1 = "check if pressure '10' is ok";
-        console.log("User: " + q1);
+        console.log("User: " + prompt);
 
-        const a1 = await session.prompt(q1, {functions, temperature: 0.1});
+        const a1 = await session.prompt(prompt, {functions, temperature: 0.1});
         console.log("AI: " + a1);
         return a1
     }

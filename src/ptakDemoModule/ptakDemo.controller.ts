@@ -11,9 +11,13 @@ export class PtakDemoController {
     }
 
     @Post('faultCheck')
-    async test() {
+
+    async test(
+        @Body() data: {
+        prompt: string
+    }) {
         try {
-            return await this.ptakDemoService.checkForFault()
+            return await this.ptakDemoService.checkForFault(data.prompt)
         } catch (err) {
             return err
         }

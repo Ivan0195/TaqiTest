@@ -61,7 +61,6 @@ export class TaqiChatService implements OnApplicationBootstrap {
     vectorStores: { vectorStore: FaissStore, userId: String }[] = [];
     embeddingModel = new HuggingFaceTransformersEmbeddings();
     filesTempDirectory = `./src/taqiChat/`;
-    url = "https://pleasant-bluejay-next.ngrok-free.app/makerDocker/completion"
 
     async onApplicationBootstrap() {
         //await this.generateBlob()

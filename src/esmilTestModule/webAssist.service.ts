@@ -11,8 +11,6 @@ export class WebAssistService {
     llama;
     getllama;
     llamaChatSession;
-    jwt = "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTY3LCJzdWJkb21haW4iOiJ0ZXN0IiwiZGV2aWNlSWQiOm51bGwsImp0aSI6IiQyYiQxMCRzWC52eUlINFQwQ2tvd3BwejBRMlZlcEk4WmQ2cmljRTUzTjllczZRNy5XTkJJTkhOSVplTyIsImlhdCI6MTczNjkzNzcyMSwiZXhwIjoxNzM5NTI5NzIxfQ.kS_PDlhGo5rO_6lMkohMVtcYwKvDChp1TyUSSgCVGPc"
-    model;
 
     async webSiteLoading(url: string) {
 
@@ -69,7 +67,7 @@ export class WebAssistService {
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': graphqlQueries.jwt
+                    'Authorization': process.env.JWT_TOKEN
                 }
             })
             console.log(data.data.data)
@@ -149,7 +147,7 @@ export class WebAssistService {
                     }, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': graphqlQueries.jwt
+                            'Authorization': process.env.JWT_TOKEN
                         }
                     })
                     const array: Array<any> = data.data.data.users
@@ -228,7 +226,7 @@ console.log(newparams)
                     }, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': graphqlQueries.jwt
+                            'Authorization': process.env.JWT_TOKEN
                         }
                     })
                     console.log(data.data.data)
@@ -393,7 +391,7 @@ console.log(newparams)
                         }, {
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': graphqlQueries.jwt
+                                'Authorization': process.env.JWT_TOKEN
                             }
                         })
                         console.log(data.data.data)
@@ -450,7 +448,7 @@ console.log(newparams)
                     }, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': graphqlQueries.jwt
+                            'Authorization': process.env.JWT_TOKEN
                         }
                     })
                     const array: Array<any> = data.data.data.users
@@ -609,7 +607,7 @@ console.log(newparams)
                     }, {
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': graphqlQueries.jwt
+                            'Authorization': process.env.JWT_TOKEN
                         }
                     })
                     console.log(data.data.data)

@@ -34,6 +34,7 @@ export class PtakDemoService {
                     }
                 },
                 async handler(params: {pressure: number}) {
+                    console.log(params)
                     if (params.pressure < 8 || params.pressure > 10) {
                         const formData = new FormData();
                         formData.append('file', new Blob([data.file.buffer]), data.file.originalname);

@@ -12,20 +12,8 @@ export class WebAssistService {
     getllama;
     llamaChatSession;
 
-    async webSiteLoading(url: string) {
-
-        const compiledConvert = compile({ wordwrap: 130 });
-        const loader = new RecursiveUrlLoader("https://office.5scontrol.com/", {
-            extractor: compiledConvert,
-            maxDepth: 15,
-            excludeDirs: ["/docs/api/"],
-        });
-        const docs = await loader.load();
-        console.log(docs)
-    }
-
     async handler(params: {email: string, password: string}) {
-        const serverAnswer = await axios.post("http://192.168.1.120:85/rest/signin",{
+        const serverAnswer = await axios.post(`${process.env.MANIFEST_API_URL}/rest/signin`,{
             email: params.email,
             password: params.password
         }, {
@@ -39,7 +27,7 @@ export class WebAssistService {
 
     async axiosGraphQL() {
         try {
-            const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+            const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                 query: graphqlQueries.getJobs,
                 variables: {
                     pageNumber: 1,
@@ -111,7 +99,7 @@ export class WebAssistService {
                 },
                 async handler(params: {email: string, password: string}) {
                     console.log(params)
-                    const serverAnswer = await axios.post("http://192.168.1.120:85/rest/signin",{
+                    const serverAnswer = await axios.post(`${process.env.MANIFEST_API_URL}/rest/signin`,{
                         email: params.email,
                         password: params.password
                     }, {
@@ -134,7 +122,7 @@ export class WebAssistService {
                     }
                 },
                 async handler(params: {email: string}) {
-                    const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+                    const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                         query: graphqlQueries.users,
                         variables: {
                             search: {},
@@ -201,7 +189,7 @@ export class WebAssistService {
                 async handler(params: {name?: string, date_modified?: string, status?: string, orgs?: string, id?: string, description?: string}) {
                     let newparams = {name: params.name ?? "", date_modified: params.date_modified ?? "", status: params.status ?? "", orgs: params.orgs ?? "", id: params.id ?? "", description: params.description ?? ""}
 console.log(newparams)
-                    const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+                    const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                         query: graphqlQueries.assetClasses,
                         variables: {
                             "pageNumber": 1,
@@ -362,7 +350,7 @@ console.log(newparams)
                     // console.log(serverAnswer.data.user.token)
                     console.log(params)
                     try{
-                        const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+                        const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                             query: graphqlQueries.templates,
                             variables: {
                                 "pageNumber": 1,
@@ -435,7 +423,7 @@ console.log(newparams)
                     }
                 },
                 async handler(params: {email: string}) {
-                    const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+                    const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                         query: graphqlQueries.assignJobToUser,
                         variables: {
                             search: {},
@@ -577,7 +565,7 @@ console.log(newparams)
                     }
                 }) {
                     console.log(params)
-                    const data = await axios.post("http://192.168.1.120:85/graphql/v3", {
+                    const data = await axios.post(`${process.env.MANIFEST_API_URL}/graphql/v3`, {
                         query: graphqlQueries.getJobs,
                         variables: {
                             pageNumber: 1,

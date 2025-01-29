@@ -4,7 +4,7 @@ import {FaissStore} from '@langchain/community/vectorstores/faiss';
 import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter';
 import {PDFLoader} from '@langchain/community/document_loaders/fs/pdf';
 import * as fs from "fs";
-import {getLlmAnswer, getTestLlmAnswer, getTextTranslation} from "./api/llmApi";
+import {getChatCompletions, getLlmAnswer, getTestLlmAnswer, getTextTranslation} from "./api/llmApi";
 import {sharedData} from "./sharedData";
 import {PDFDocument} from "pdf-lib";
 
@@ -52,6 +52,12 @@ interface INoteFile {
     contentType?: string,
     entityType?: string,
     originalName?: string,
+}
+
+export type IChatTemplateMessage = {
+    role: "user" | "assistant" | "system"
+    content: string
+    id: number
 }
 
 @Injectable()
@@ -139,7 +145,7 @@ export class TaqiChatService implements OnApplicationBootstrap {
         }
         let languageToUse
         let finalQuestion = data.question
-        const usedHashtags = data.question.match(this.hashRegex)
+        const usedHashtags: string[] = data.question.match(this.hashRegex)
 
         if (usedHashtags) {
             usedHashtags.forEach(el => {
@@ -306,6 +312,109 @@ ${languageToUse ? `Always answer in ${languageToUse.split('=')[1]} language` : '
 [/INST]`
         const answer = await getLlmAnswer(prompt)
         return answer.data.content
+    }
+
+
+    async generateChatAnswer(
+        data: {
+            userId: string,
+            template?: string,
+            question: string,
+            dropContext?: boolean,
+            chatHistory?: string,
+            files?: Express.Multer.File[],
+        }
+    ) {
+        if (!data.chatHistory || !data.chatHistory.length) {
+            return 'Hi, I\'m TAQi, AI assistant, please tell me what template you are currently working with, provide the number in the format #templateId=123456. '
+        }
+        let finalQuestion = data.question
+        const usedHashtags: string[] = data.question.match(/#[a-z]+/gi)
+        if (usedHashtags) {
+            usedHashtags.forEach(el => {
+                finalQuestion = finalQuestion.replace(el, "")
+            })
+        }
+
+        if (usedHashtags && usedHashtags.includes("#autotest")) {
+            return this.testTaqi()
+        }
+
+        if (data.dropContext || data.question.includes("#dropcontext") || data.template) {
+            const index = this.vectorStores.indexOf(this.vectorStores.find(el => el.userId === data.userId));
+            if (index !== -1) {
+                this.vectorStores.splice(index, 1);
+                const filePath = `${this.filesTempDirectory}vectorStores/${data.userId}`
+                fs.rmSync(filePath, {recursive: true, force: true});
+            }
+        }
+        if (data.template) {
+            const currentUserVectorStore = this.vectorStores.find(el => el.userId === data.userId)
+            if (currentUserVectorStore) {
+                currentUserVectorStore.vectorStore = null
+            }
+            const parsedTemplate = JSON.parse(data.template) as ITemplate
+            if (data.files && data.files.length) {
+                console.log("found doc")
+                const mergedPdf = await PDFDocument.create();
+                for (const file of data.files) {
+                    const pdf = await PDFDocument.load(file.buffer);
+                    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    copiedPages.forEach((page) => {
+                        mergedPdf.addPage(page);
+                    });
+                }
+                const filePath = `${this.filesTempDirectory}temp/merged_file.pdf`;
+                const bytes = await mergedPdf.save()
+                fs.writeFileSync(filePath, bytes);
+                await this.processFile(data.userId, filePath)
+            }
+            if (parsedTemplate.steps && parsedTemplate.steps.length) {
+                for (const step of parsedTemplate.steps) {
+                    await this.processText(data.userId, step.title)
+                    for (const note of step.notes) {
+                        if (note.text) {
+                            await this.processText(data.userId, note.text)
+                        }
+                    }
+                }
+            }
+        }
+        const systemMessage: IChatTemplateMessage = {id: Date.now(), role: "system", content: sharedData.faq}
+        const currentUserContext = this.vectorStores.find(el => el.userId === data.userId)
+        if (!currentUserContext) {
+            const chatMessages: IChatTemplateMessage[] = [
+                systemMessage,
+                ...JSON.parse(data.chatHistory).map(el => ({role: el.author === "user" ? "user" : "assistant", id: Date.now(), content: el.message})),
+                {id: Date.now(), role: "user", content: data.question}]
+            const answer = await getChatCompletions(chatMessages)
+            return answer.data.choices[0].message.content.replace('<|im_end|>', '').replace('<|im_start|>', '')
+        } else {
+            let searchResult
+            if (usedHashtags && usedHashtags.find(el => el.includes('lang='))) {
+                const questionTranslate = await getTextTranslation(finalQuestion)
+                searchResult = await currentUserContext.vectorStore.similaritySearch(questionTranslate, 20)
+            } else {
+                const retriever = currentUserContext.vectorStore.asRetriever({k: 20})
+                searchResult = await retriever.invoke(finalQuestion)
+            }
+
+            const extraInfo = searchResult.reduce((acc, el) => acc + el.pageContent + " ", "")
+            console.log(extraInfo)
+            const systemMessage: IChatTemplateMessage = {id: Date.now(), role: "system", content: sharedData.faq}
+
+            const chatMessages: IChatTemplateMessage[] = [
+                systemMessage,
+                ...JSON.parse(data.chatHistory).map(el => ({role: el.author === "user" ? "user" : "assistant", id: Date.now(), content: el.message})),
+                {id: Date.now(), role: "user", content: `
+                    use this information: ${extraInfo}
+                    to naswer my question: ${data.question}
+                `}
+            ]
+            const response = await getChatCompletions(chatMessages)
+            const answer = response.data.choices[0].message.content.replace('<|im_end|>', '').replace('<|im_start|>', '')
+            return answer
+        }
     }
 
     async testTaqi() {

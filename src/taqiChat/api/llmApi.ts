@@ -1,4 +1,5 @@
 import axios from "axios";
+import {IChatTemplateMessage} from "../taqiChat.service";
 
 export const getLlmAnswer = async (prompt: string) => {
     const answer = await axios.post(`${process.env.MODEL_URL}/completion`, {
@@ -20,5 +21,15 @@ export const getTextTranslation = async (text: string) => {
         grammar: "root ::= Translate\nTranslate ::= \"{\"   ws   \"\\\"translation\\\":\"   ws   string   \"}\"\nstring ::= \"\\\"\"   ([^\"]*)   \"\\\"\"\nboolean ::= \"true\" | \"false\"\nws ::= [ \\t\\n]*\nnumber ::= [0-9]*\nstringlist ::= \"[\"   ws   \"]\" | \"[\"   ws   string   (\",\"   ws   string)*   ws   \"]\"\nnumberlist ::= \"[\"   ws   \"]\" | \"[\"   ws   string   (\",\"   ws   number)*   ws   \"]\""
     })
     return JSON.parse(answer.data.content).translation
+}
+
+export const getChatCompletions = async (messages: IChatTemplateMessage[]) => {
+    const answer = await axios.post(`${process.env.MODEL_URL}/v1/chat/completions`, {
+            messages,
+            repeat_penalty: 1.18,
+        seed: -1,
+        temperature: 0.1
+        })
+    return answer
 }
 

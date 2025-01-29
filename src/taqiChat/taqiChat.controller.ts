@@ -46,7 +46,7 @@ export class TaqiChatController {
     @UploadedFiles() files: Express.Multer.File[]
     ) {
         try {
-                return await this.taqiChatService.generateAnswer({...data, files});
+                return await this.taqiChatService.generateChatAnswer({...data, files});
         } catch (err) {
             if (err.message) {
                 throw new HttpException(err.message, err.status);
